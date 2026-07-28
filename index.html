@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clima Punilla - Canal TV</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f0a1a; font-family: Arial, sans-serif; color: #fff; padding: 20px; }
+
+/* ── CONTROLES ── */
+.controls {
+  max-width: 1000px; margin: 0 auto 16px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+}
+.upd { font-size: 13px; color: #bbb; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  padding: 9px 20px; border-radius: 9px; border: none;
+  cursor: pointer; font-size: 13px; font-weight: 700;
+}
+.btn-refresh { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+.btn-refresh:hover { background: rgba(255,255,255,0.22); }
+.btn-dl { background: #e67e22; color: #fff; }
+.btn-dl:hover { background: #d35400; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── CANVAS WRAPPER ── */
+.canvas-wrap {
+  max-width: 1000px; margin: 0 auto 24px;
+  position: relative;
+}
+
+/* El canvas donde dibujamos */
+#weatherCanvas {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ── PANEL EDICIÓN ── */
+.edit-panel {
+  max-width: 1000px; margin: 0 auto;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 20px;
+}
+.edit-panel h3 {
+  font-size: 15px; font-weight: 700; letter-spacing: 1px;
+  margin-bottom: 16px; color: #e0c060;
+}
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.edit-card {
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 12px;
+}
+.edit-card .city-name {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #e0c060; margin-bottom: 8px;
+}
+.edit-card select,
+.edit-card input {
+  width: 100%; padding: 6px 8px; border-radius: 6px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; font-size: 12px; margin-bottom: 6px;
+}
+.edit-card select option { background: #1a1a2e; color: #fff; }
+.edit-card .temps { display: flex; gap: 6px; }
+.edit-card .temps input { flex: 1; }
+.edit-card label { font-size: 10px; color: #aaa; display: block; margin-bottom: 2px; }
+.btn-apply {
+  margin-top: 16px; padding: 10px 28px; border-radius: 9px;
+  background: #27ae60; color: #fff; border: none;
+  font-size: 14px; font-weight: 700; cursor: pointer; width: 100%;
+}
+.btn-apply:hover { background: #219a52; }
+
+.loading-msg {
+  text-align: center; padding: 60px 20px; color: #aaa; font-size: 16px;
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  max-width: 1000px; margin: 0 auto;
+}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <span class="upd" id="upd">Cargando datos...</span>
+  <div class="btns">
+    <button class="btn btn-refresh" onclick="loadAll()">↻ Actualizar clima</button>
+    <button class="btn btn-dl" id="btnDl" onclick="descargarImagen()" disabled>⬇ Descargar imagen</button>
+  </div>
+</div>
+
+<div id="loading-msg" class="loading-msg">⏳ Conectando con Open-Meteo...</div>
+
+<div class="canvas-wrap" id="canvas-wrap" style="display:none">
+  <canvas id="weatherCanvas"></canvas>
+</div>
+
+<div class="edit-panel" id="edit-panel" style="display:none">
+  <h3>✏️ EDITAR DATOS MANUALMENTE</h3>
+  <div class="edit-grid" id="edit-grid"></div>
+  <button class="btn-apply" onclick="aplicarEdicion()">✅ Aplicar cambios y redibujar</button>
+</div>
+
+<script>
+// ── LOCALIDADES Y POSICIONES EN LA PLANTILLA 1920x1080 ──────────────────────
+// Posiciones detectadas automáticamente de la plantilla
+const LOCS = [
+  { n:"VILLA CARLOS PAZ",      lat:-31.4241, lon:-64.4978,
+    cx:292, cy:291, w:422, h:422, iconSize:200, condY:417, tempY:485, fontSize:22, tempSize:20 },
+  { n:"SAN ANTONIO",           lat:-31.4667, lon:-64.5167,
+    cx:708, cy:358, w:326, h:312, iconSize:130, condY:451, tempY:501, fontSize:16, tempSize:15 },
+  { n:"BIALET MASSÉ",          lat:-31.3167, lon:-64.4833,
+    cx:1041,cy:360, w:313, h:312, iconSize:130, condY:453, tempY:503, fontSize:16, tempSize:15 },
+  { n:"V. PARQUE SIQUIMÁN",    lat:-31.3667, lon:-64.5000,
+    cx:1376,cy:368, w:305, h:313, iconSize:130, condY:462, tempY:512, fontSize:16, tempSize:15 },
+  { n:"STA. MARÍA DE PUNILLA", lat:-31.3667, lon:-64.4667,
+    cx:1722,cy:363, w:312, h:312, iconSize:130, condY:456, tempY:506, fontSize:16, tempSize:15 },
+  { n:"LA CUMBRE",             lat:-30.9667, lon:-64.5167,
+    cx:228, cy:705, w:277, h:277, iconSize:110, condY:788, tempY:832, fontSize:15, tempSize:14 },
+  { n:"LOS COCOS",             lat:-30.9833, lon:-64.5333,
+    cx:532, cy:693, w:277, h:264, iconSize:110, condY:773, tempY:815, fontSize:15, tempSize:14 },
+  { n:"CAPILLA DEL MONTE",     lat:-30.8600, lon:-64.5250,
+    cx:832, cy:698, w:277, h:277, iconSize:110, condY:781, tempY:825, fontSize:15, tempSize:14 },
+  { n:"MALAGUEÑO",             lat:-31.4647, lon:-64.3586,
+    cx:1125,cy:689, w:259, h:240, iconSize:100, condY:761, tempY:800, fontSize:15, tempSize:14 },
+  { n:"CÓRDOBA",               lat:-31.4201, lon:-64.1888,
+    cx:1436,cy:691, w:277, h:262, iconSize:110, condY:769, tempY:811, fontSize:15, tempSize:14 },
+  { n:"COSQUÍN",               lat:-31.2451, lon:-64.4656,
+    cx:1743,cy:699, w:277, h:277, iconSize:110, condY:782, tempY:826, fontSize:15, tempSize:14 },
+];
+
+// ── CONDICIÓN DESDE CÓDIGO WMO ───────────────────────────────────────────────
+function wmo(c) {
+  if (c===0)                                         return {l:"DESPEJADO",   f:"despejado"};
+  if ([1,2].includes(c))                             return {l:"SEMINUBLADO", f:"seminublado"};
+  if (c===3)                                         return {l:"NUBLADO",     f:"nublado"};
+  if ([45,48].includes(c))                           return {l:"NIEBLA",      f:"niebla"};
+  if ([51,53,55,56,57].includes(c))                  return {l:"LLOVIZNA",    f:"llovizna"};
+  if ([61,63,65,66,67,80,81,82].includes(c))         return {l:"LLUVIA",      f:"lluvia"};
+  if ([71,73,75,77].includes(c))                     return {l:"NIEVE",       f:"nieve"};
+  if ([95,96,99].includes(c))                        return {l:"TORMENTA",    f:"tormenta"};
+  return {l:"VARIABLE", f:"nublado"};
+}
+
+// ── ESTADO GLOBAL ────────────────────────────────────────────────────────────
+let weatherData = []; // datos actuales de cada localidad
+let imgPlantilla = null;
+let imgIconos = {};   // { "despejado": HTMLImageElement, ... }
+
+const ICONOS = ["despejado","seminublado","nublado","lluvia","llovizna","tormenta","niebla","nieve"];
+const CONDICIONES = ["DESPEJADO","SEMINUBLADO","NUBLADO","LLUVIA","LLOVIZNA","TORMENTA","NIEBLA","NIEVE","VARIABLE"];
+
+// ── CARGAR IMÁGENES ───────────────────────────────────────────────────────────
+function cargarImagen(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => res(img);
+    img.onerror = () => rej(new Error("No se pudo cargar: " + src));
+    img.src = src + "?v=" + Date.now();
+  });
+}
+
+async function cargarTodosLosAssets() {
+  imgPlantilla = await cargarImagen("img/plantilla_sola.png");
+  for (const nombre of ICONOS) {
+    imgIconos[nombre] = await cargarImagen(`img/${nombre}.png`);
+  }
+}
+
+// ── FETCH OPEN-METEO CON REINTENTOS ─────────────────────────────────────────
+async function fetchLoc(lat, lon) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America%2FArgentina%2FCordoba&forecast_days=2`;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) return await r.json();
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  return null;
+}
+
+async function loadAll() {
+  document.getElementById('upd').textContent = 'Actualizando...';
+  document.getElementById('btnDl').disabled = true;
+  document.getElementById('loading-msg').style.display = 'block';
+  document.getElementById('canvas-wrap').style.display = 'none';
+  document.getElementById('edit-panel').style.display = 'none';
+  document.getElementById('loading-msg').textContent = '⏳ Cargando imágenes y clima...';
+
+  try {
+    await cargarTodosLosAssets();
+  } catch(e) {
+    document.getElementById('loading-msg').textContent = '⚠️ Error cargando imágenes: ' + e.message;
+    return;
+  }
+
+  const raw = await Promise.all(LOCS.map(l => fetchLoc(l.lat, l.lon)));
+
+  weatherData = LOCS.map((loc, i) => {
+    const d = raw[i];
+    if (!d) return { cond: "VARIABLE", condFile: "nublado", max: "--", min: "--" };
+    const w = wmo(d.daily.weather_code[0]);
+    return {
+      cond: w.l,
+      condFile: w.f,
+      max: Math.round(d.daily.temperature_2m_max[0]),
+      min: Math.round(d.daily.temperature_2m_min[0]),
+    };
+  });
+
+  dibujarCanvas();
+  construirPanelEdicion();
+
+  document.getElementById('loading-msg').style.display = 'none';
+  document.getElementById('canvas-wrap').style.display = 'block';
+  document.getElementById('edit-panel').style.display = 'block';
+  document.getElementById('btnDl').disabled = false;
+
+  const now = new Date();
+  document.getElementById('upd').textContent =
+    'Actualizado: ' + now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) +
+    ' · ' + now.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+}
+
+// ── DIBUJAR SOBRE EL CANVAS ──────────────────────────────────────────────────
+function dibujarCanvas() {
+  const W = 1920, H = 1080;
+  const canvas = document.getElementById('weatherCanvas');
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 1. Plantilla de fondo
+  ctx.drawImage(imgPlantilla, 0, 0, W, H);
+
+  // 2. Dibujar datos sobre cada tarjeta
+  LOCS.forEach((loc, i) => {
+    const d = weatherData[i];
+    const icono = imgIconos[d.condFile] || imgIconos["nublado"];
+
+    // ─ Ícono centrado en la tarjeta
+    const is = loc.iconSize;
+    ctx.drawImage(icono, loc.cx - is/2, loc.cy - is/2, is, is);
+
+    // ─ Condición (texto en rosa/blanco con sombra)
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Condición
+    ctx.font = `900 ${loc.fontSize}px Arial`;
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 6;
+    ctx.fillText(d.cond, loc.cx, loc.condY);
+
+    // Temperaturas (amarillo)
+    ctx.font = `900 ${loc.tempSize}px Arial`;
+    ctx.fillStyle = "#FFE000";
+    ctx.fillText(`${d.max}° / ${d.min}°`, loc.cx, loc.tempY);
+
+    ctx.restore();
+  });
+}
+
+// ── PANEL DE EDICIÓN ─────────────────────────────────────────────────────────
+function construirPanelEdicion() {
+  const grid = document.getElementById('edit-grid');
+  grid.innerHTML = '';
+
+  LOCS.forEach((loc, i) => {
+    const d = weatherData[i];
+    const card = document.createElement('div');
+    card.className = 'edit-card';
+    card.innerHTML = `
+      <div class="city-name">${loc.n}</div>
+      <label>Condición</label>
+      <select id="cond-${i}">
+        ${CONDICIONES.map(c =>
+          `<option value="${c}" ${c === d.cond ? 'selected' : ''}>${c}</option>`
+        ).join('')}
+      </select>
+      <label>Temperaturas</label>
+      <div class="temps">
+        <div>
+          <label>Máx</label>
+          <input type="number" id="max-${i}" value="${d.max}">
+        </div>
+        <div>
+          <label>Mín</label>
+          <input type="number" id="min-${i}" value="${d.min}">
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── APLICAR EDICIÓN MANUAL ───────────────────────────────────────────────────
+function aplicarEdicion() {
+  const condToFile = {
+    "DESPEJADO":"despejado", "SEMINUBLADO":"seminublado", "NUBLADO":"nublado",
+    "LLUVIA":"lluvia", "LLOVIZNA":"llovizna", "TORMENTA":"tormenta",
+    "NIEBLA":"niebla", "NIEVE":"nieve", "VARIABLE":"nublado"
+  };
+
+  LOCS.forEach((_, i) => {
+    const cond = document.getElementById(`cond-${i}`).value;
+    const max  = document.getElementById(`max-${i}`).value;
+    const min  = document.getElementById(`min-${i}`).value;
+    weatherData[i] = {
+      cond:     cond,
+      condFile: condToFile[cond] || "nublado",
+      max:      max,
+      min:      min,
+    };
+  });
+
+  dibujarCanvas();
+}
+
+// ── DESCARGAR IMAGEN ─────────────────────────────────────────────────────────
+function descargarImagen() {
+  const canvas = document.getElementById('weatherCanvas');
+  const fecha  = new Date().toLocaleDateString('es-AR').replace(/\//g,'-');
+  const link   = document.createElement('a');
+  link.download = `clima_localidades_${fecha}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ── ARRANCAR ─────────────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>
