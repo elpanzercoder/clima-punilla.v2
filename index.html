@@ -169,7 +169,6 @@ function cargarImagen(src) {
     img.src = src + "?v=" + Date.now();
   });
 }
-
 async function cargarTodosLosAssets() {
   imgPlantilla = await cargarImagen("img/plantilla_sola.png");
   for (const nombre of ICONOS) {
