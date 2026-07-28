@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "name": "clima-punilla-tv",
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" }
+  ]
+}
