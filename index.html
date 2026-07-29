@@ -9,11 +9,11 @@
 body { background: #0f0a1a; font-family: Arial, sans-serif; color: #fff; }
 
 /* ── LAYOUT PRINCIPAL ── */
-.layout { display: flex; height: 100vh; overflow: hidden; }
+.layout { display: flex; flex-direction: column; min-height: 100vh; }
 
-/* ── ÁREA IZQUIERDA ── */
+/* ── ÁREA PRINCIPAL ── */
 .main-area {
-  flex: 1; overflow-y: auto; padding: 16px;
+  flex: 1; padding: 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
 
@@ -47,18 +47,17 @@ body { background: #0f0a1a; font-family: Arial, sans-serif; color: #fff; }
   background: rgba(255,255,255,0.04); border-radius: 12px;
 }
 
-/* ── PANEL LATERAL ── */
+/* ── PANEL INFERIOR ── */
 .side-panel {
-  width: 0; overflow: hidden;
+  height: 0; overflow: hidden;
   background: #1a0f2e;
-  border-left: 1px solid rgba(255,255,255,0.1);
-  transition: width 0.3s ease;
-  display: flex; flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  transition: height 0.35s ease;
 }
-.side-panel.open { width: 320px; overflow-y: auto; }
+.side-panel.open { height: auto; overflow: visible; }
 
 .panel-header {
-  padding: 16px;
+  padding: 12px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   display: flex; justify-content: space-between; align-items: center;
 }
@@ -71,12 +70,17 @@ body { background: #0f0a1a; font-family: Arial, sans-serif; color: #fff; }
 
 /* ── SLIDERS GLOBALES ── */
 .sliders-section {
-  padding: 14px 16px;
+  padding: 14px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.04);
 }
-.sliders-section h4 { font-size: 11px; color: #a0a0c0; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
-.slider-row { margin-bottom: 10px; }
+.sliders-section h4 { font-size: 11px; color: #a0a0c0; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+.sliders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px 24px;
+}
+.slider-row { }
 .slider-row label { font-size: 11px; color: #ccc; display: flex; justify-content: space-between; margin-bottom: 4px; }
 .slider-row label span { color: #e0c060; font-weight: 700; }
 input[type=range] {
@@ -85,11 +89,16 @@ input[type=range] {
 }
 
 /* ── CIUDADES EN EL PANEL ── */
-.cities-section { padding: 14px 16px; flex: 1; }
+.cities-section { padding: 14px 20px; }
 .cities-section h4 { font-size: 11px; color: #a0a0c0; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+.cities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
 .edit-card {
   background: rgba(255,255,255,0.06);
-  border-radius: 8px; padding: 10px; margin-bottom: 8px;
+  border-radius: 8px; padding: 10px;
   border: 1px solid rgba(255,255,255,0.08);
 }
 .edit-card .city-name {
@@ -108,10 +117,11 @@ input[type=range] {
 .edit-card label { font-size: 10px; color: #888; display: block; margin-bottom: 2px; }
 
 .btn-apply {
-  width: calc(100% - 32px); margin: 0 16px 16px;
-  padding: 10px; border-radius: 8px;
+  margin: 12px 20px 16px;
+  padding: 10px 32px; border-radius: 8px;
   background: #27ae60; color: #fff; border: none;
   font-size: 13px; font-weight: 700; cursor: pointer;
+  display: block;
 }
 .btn-apply:hover { background: #219a52; }
 </style>
@@ -147,36 +157,34 @@ input[type=range] {
     <div class="sliders-section">
       <h4>Escala global</h4>
 
-      <div class="slider-row">
-        <label>Tamaño íconos <span id="val-icon">100%</span></label>
-        <input type="range" id="sl-icon" min="50" max="200" value="100" oninput="actualizarSlider('icon',this.value)">
-      </div>
-
-      <div class="slider-row">
-        <label>Tamaño condición <span id="val-cond">100%</span></label>
-        <input type="range" id="sl-cond" min="50" max="200" value="100" oninput="actualizarSlider('cond',this.value)">
-      </div>
-
-      <div class="slider-row">
-        <label>Tamaño temperaturas <span id="val-temp">100%</span></label>
-        <input type="range" id="sl-temp" min="50" max="200" value="100" oninput="actualizarSlider('temp',this.value)">
-      </div>
-
-      <div class="slider-row">
-        <label>Color temperaturas</label>
-        <input type="color" id="color-temp" value="#ffffff" style="width:100%;height:32px;border-radius:6px;cursor:pointer;border:none;background:none;" oninput="dibujarCanvas()">
-      </div>
-
-      <div class="slider-row">
-        <label>Color condición</label>
-        <input type="color" id="color-cond" value="#ffffff" style="width:100%;height:32px;border-radius:6px;cursor:pointer;border:none;background:none;" oninput="dibujarCanvas()">
+      <div class="sliders-grid">
+        <div class="slider-row">
+          <label>Tamaño íconos <span id="val-icon">100%</span></label>
+          <input type="range" id="sl-icon" min="50" max="200" value="100" oninput="actualizarSlider('icon',this.value)">
+        </div>
+        <div class="slider-row">
+          <label>Tamaño condición <span id="val-cond">100%</span></label>
+          <input type="range" id="sl-cond" min="50" max="200" value="100" oninput="actualizarSlider('cond',this.value)">
+        </div>
+        <div class="slider-row">
+          <label>Tamaño temperaturas <span id="val-temp">100%</span></label>
+          <input type="range" id="sl-temp" min="50" max="200" value="100" oninput="actualizarSlider('temp',this.value)">
+        </div>
+        <div class="slider-row">
+          <label>Color temperaturas</label>
+          <input type="color" id="color-temp" value="#ffffff" style="width:100%;height:32px;border-radius:6px;cursor:pointer;border:none;background:none;" oninput="dibujarCanvas()">
+        </div>
+        <div class="slider-row">
+          <label>Color condición</label>
+          <input type="color" id="color-cond" value="#ffffff" style="width:100%;height:32px;border-radius:6px;cursor:pointer;border:none;background:none;" oninput="dibujarCanvas()">
+        </div>
       </div>
     </div>
 
     <!-- CIUDADES -->
     <div class="cities-section">
       <h4>Datos por ciudad</h4>
-      <div id="edit-grid"></div>
+      <div class="cities-grid" id="edit-grid"></div>
     </div>
 
     <button class="btn-apply" onclick="aplicarEdicion()">✅ Aplicar cambios</button>
@@ -188,7 +196,7 @@ input[type=range] {
 // ── LOCALIDADES Y POSICIONES ─────────────────────────────────────────────────
 const LOCS = [
   { n:"VILLA CARLOS PAZ",      lat:-31.4241, lon:-64.4978,
-    cx:292,  cy:285,  iconSize:220, iconW:269, iconH:193, condY:430, tempY:490, fontSize:24, tempSize:33 },
+    cx:292,  cy:285,  iconSize:220, condY:430, tempY:490, fontSize:24, tempSize:33 },
   { n:"SAN ANTONIO",           lat:-31.4667, lon:-64.5167,
     cx:708,  cy:350,  iconSize:140, condY:458, tempY:505, fontSize:21, tempSize:28 },
   { n:"BIALET MASSÉ",          lat:-31.3167, lon:-64.4833,
@@ -204,7 +212,7 @@ const LOCS = [
   { n:"CAPILLA DEL MONTE",     lat:-30.8600, lon:-64.5250,
     cx:832,  cy:700,  iconSize:120, condY:784, tempY:827, fontSize:21, tempSize:28 },
   { n:"MALAGUEÑO",             lat:-31.4647, lon:-64.3586,
-    cx:1125, cy:695,  iconSize:120, condY:768, tempY:808, fontSize:21, tempSize:28 },
+    cx:1125, cy:700,  iconSize:120, condY:784, tempY:827, fontSize:21, tempSize:28 },
   { n:"CÓRDOBA",               lat:-31.4201, lon:-64.1888,
     cx:1436, cy:700,  iconSize:120, condY:778, tempY:820, fontSize:21, tempSize:28 },
   { n:"COSQUÍN",               lat:-31.2451, lon:-64.4656,
