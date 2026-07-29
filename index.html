@@ -116,29 +116,29 @@ body { background: #0f0a1a; font-family: Arial, sans-serif; color: #fff; padding
 const LOCS = [
   // VILLA CARLOS PAZ - tarjeta grande fila 1
   { n:"VILLA CARLOS PAZ",      lat:-31.4241, lon:-64.4978,
-    cx:292, cy:295, w:422, h:422, iconSize:220, condY:430, tempY:490, fontSize:24, tempSize:33 },
+    cx:292, cy:285, w:422, h:422, iconSize:220, iconW:269, iconH:193, condY:430, tempY:490, fontSize:24, tempSize:33 },
   // Fila 1 - tarjetas chicas
   { n:"SAN ANTONIO",           lat:-31.4667, lon:-64.5167,
-    cx:708, cy:350, w:326, h:312, iconSize:150, condY:458, tempY:505, fontSize:18, tempSize:26 },
+    cx:708, cy:350, w:326, h:312, iconSize:140, condY:458, tempY:505, fontSize:21, tempSize:28 },
   { n:"BIALET MASSÉ",          lat:-31.3167, lon:-64.4833,
-    cx:1041,cy:350, w:313, h:312, iconSize:150, condY:458, tempY:505, fontSize:18, tempSize:26 },
+    cx:1041,cy:350, w:313, h:312, iconSize:140, condY:458, tempY:505, fontSize:21, tempSize:28 },
   { n:"V. PARQUE SIQUIMÁN",    lat:-31.3667, lon:-64.5000,
-    cx:1376,cy:355, w:305, h:313, iconSize:145, condY:462, tempY:510, fontSize:18, tempSize:26 },
+    cx:1376,cy:355, w:305, h:313, iconSize:135, condY:462, tempY:510, fontSize:21, tempSize:28 },
   { n:"STA. MARÍA DE PUNILLA", lat:-31.3667, lon:-64.4667,
-    cx:1722,cy:352, w:312, h:312, iconSize:148, condY:460, tempY:507, fontSize:18, tempSize:26 },
+    cx:1722,cy:352, w:312, h:312, iconSize:138, condY:460, tempY:507, fontSize:21, tempSize:28 },
   // Fila 2
   { n:"LA CUMBRE",             lat:-30.9667, lon:-64.5167,
-    cx:228, cy:700, w:277, h:277, iconSize:130, condY:785, tempY:828, fontSize:18, tempSize:26 },
+    cx:228, cy:700, w:277, h:277, iconSize:120, condY:785, tempY:828, fontSize:21, tempSize:28 },
   { n:"LOS COCOS",             lat:-30.9833, lon:-64.5333,
-    cx:532, cy:700, w:277, h:264, iconSize:128, condY:780, tempY:822, fontSize:18, tempSize:26 },
+    cx:532, cy:700, w:277, h:264, iconSize:118, condY:780, tempY:822, fontSize:21, tempSize:28 },
   { n:"CAPILLA DEL MONTE",     lat:-30.8600, lon:-64.5250,
-    cx:832, cy:700, w:277, h:277, iconSize:130, condY:784, tempY:827, fontSize:18, tempSize:26 },
+    cx:832, cy:700, w:277, h:277, iconSize:120, condY:784, tempY:827, fontSize:21, tempSize:28 },
   { n:"MALAGUEÑO",             lat:-31.4647, lon:-64.3586,
-    cx:1125,cy:695, w:259, h:240, iconSize:122, condY:768, tempY:808, fontSize:18, tempSize:26 },
+    cx:1125,cy:695, w:259, h:240, iconSize:112, condY:768, tempY:808, fontSize:21, tempSize:28 },
   { n:"CÓRDOBA",               lat:-31.4201, lon:-64.1888,
-    cx:1436,cy:700, w:277, h:262, iconSize:128, condY:778, tempY:820, fontSize:18, tempSize:26 },
+    cx:1436,cy:700, w:277, h:262, iconSize:118, condY:778, tempY:820, fontSize:21, tempSize:28 },
   { n:"COSQUÍN",               lat:-31.2451, lon:-64.4656,
-    cx:1743,cy:700, w:277, h:277, iconSize:130, condY:784, tempY:827, fontSize:18, tempSize:26 },
+    cx:1743,cy:700, w:277, h:277, iconSize:120, condY:784, tempY:827, fontSize:21, tempSize:28 },
 ];
 
 // ── CONDICIÓN DESDE CÓDIGO WMO ───────────────────────────────────────────────
@@ -253,8 +253,9 @@ function dibujarCanvas() {
     const icono = imgIconos[d.condFile] || imgIconos["nublado"];
 
     // ─ Ícono centrado en la tarjeta
-    const is = loc.iconSize;
-    ctx.drawImage(icono, loc.cx - is/2, loc.cy - is/2, is, is);
+    const iw = loc.iconW || loc.iconSize;
+    const ih = loc.iconH || loc.iconSize;
+    ctx.drawImage(icono, loc.cx - iw/2, loc.cy - ih/2, iw, ih);
 
     ctx.save();
     ctx.textAlign = "center";
@@ -271,7 +272,7 @@ function dibujarCanvas() {
 
     // Temperaturas - amarillo con sombra
     ctx.font = `900 ${loc.tempSize}px Arial`;
-    ctx.fillStyle = "#FFE000";
+    ctx.fillStyle = "#ffffff";
     ctx.shadowColor = "rgba(0,0,0,0.95)";
     ctx.shadowBlur = 8;
     ctx.fillText(`${d.max}° / ${d.min}°`, loc.cx, loc.tempY);
