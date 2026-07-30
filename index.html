@@ -415,20 +415,28 @@ function dibujarExtendido() {
   const d0 = extData[0];
   const ic0 = imgIconos[d0.condFile] || imgIconos['nublado'];
 
+  // Tapar la nube negra que viene en la plantilla (x~630-790, y~110-200)
+  ctx.save();
+  ctx.globalAlpha = 1;
+  // Crear gradiente para tapar la nube del mismo color que el fondo del panel
+  const tapGrad = ctx.createLinearGradient(620, 110, 820, 200);
+  tapGrad.addColorStop(0, 'rgba(180,60,40,1)');
+  tapGrad.addColorStop(1, 'rgba(200,80,40,1)');
+  ctx.fillStyle = tapGrad;
+  ctx.beginPath();
+  ctx.roundRect(620, 105, 200, 115, 10);
+  ctx.fill();
+  ctx.restore();
+
   // Día
   ctx.font = `900 ${Math.round(68*scales.cond)}px Arial`;
   ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
   ctx.fillText(dayName(1), p.main.dayX, p.main.dayY);
 
-  // % lluvia (solo número, sin nube)
+  // % lluvia (solo número, sin nube, sin ciudad - ya viene en la plantilla)
   ctx.font = `700 ${Math.round(38*scales.temp)}px Arial`;
   ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
   ctx.fillText(`${d0.rain}%`, p.main.rainPctX, p.main.rainPctY);
-
-  // Ciudad (UNA SOLA VEZ)
-  ctx.font = `700 ${Math.round(34*scales.cond)}px Arial`;
-  ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-  ctx.fillText('VILLA CARLOS PAZ', p.main.cityX, p.main.cityY);
 
   // Ícono grande
   const is0 = p.main.iconSize * scales.icon;
