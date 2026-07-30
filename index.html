@@ -233,21 +233,21 @@ const EXT_POS = {
     minX: 290, minY: 590,           // 9°
     condX: 610, condY: 870,         // NUBLADO
   },
-  // Panel derecho arriba
+  // Panel derecho arriba: x=1160-1620, y=120-500 -> cx=1390, cy=310
   d1: {
-    dayX: 1200, dayY: 170,          // VIERNES
-    iconX: 1230, iconY: 280, iconSize: 140,
-    rainPctX: 1570, rainPctY: 300,  // 40%
-    condX: 1260, condY: 410,        // TORMENTA
-    tempX: 1260, tempY: 460,        // 26°/14°
+    dayX: 1165, dayY: 175,
+    iconX: 1290, iconY: 305, iconSize: 140,
+    rainPctX: 1500, rainPctY: 200,
+    condX: 1165, condY: 420,
+    tempX: 1165, tempY: 465,
   },
-  // Panel derecho abajo
+  // Panel derecho abajo: x=1160-1620, y=520-900 -> cx=1390, cy=710
   d2: {
-    dayX: 1200, dayY: 605,          // SÁBADO
-    iconX: 1230, iconY: 715, iconSize: 140,
-    rainPctX: 1570, rainPctY: 745,  // 0%
-    condX: 1260, condY: 840,        // NUBLADO
-    tempX: 1260, tempY: 885,        // 18°/10°
+    dayX: 1165, dayY: 565,
+    iconX: 1290, iconY: 690, iconSize: 140,
+    rainPctX: 1500, rainPctY: 590,
+    condX: 1165, condY: 800,
+    tempX: 1165, tempY: 845,
   },
 };
 
@@ -405,75 +405,78 @@ function dibujarExtendido() {
   const p = EXT_POS;
 
   ctx.save();
-  ctx.shadowColor="rgba(0,0,0,0.9)"; ctx.shadowBlur=8; ctx.shadowOffsetX=2; ctx.shadowOffsetY=2;
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 1;
 
-  // ── PANEL PRINCIPAL ──
+  // ══ PANEL PRINCIPAL ══════════════════════════════
   const d0 = extData[0];
-  const ic0 = imgIconos[d0.condFile]||imgIconos["nublado"];
+  const ic0 = imgIconos[d0.condFile] || imgIconos['nublado'];
 
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(0,0,0,0.9)"; ctx.shadowBlur=6; ctx.shadowOffsetX=1; ctx.shadowOffsetY=1;
-
-  // Día grande
-  ctx.font=`900 ${Math.round(68*scales.cond)}px Arial`;
-  ctx.fillStyle="#fff"; ctx.textAlign="left";
+  // Día
+  ctx.font = `900 ${Math.round(68*scales.cond)}px Arial`;
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
   ctx.fillText(dayName(1), p.main.dayX, p.main.dayY);
 
-  // % lluvia solo texto
-  ctx.font=`700 ${Math.round(38*scales.temp)}px Arial`;
-  ctx.fillStyle="#fff"; ctx.textAlign="left";
+  // % lluvia (solo número, sin nube)
+  ctx.font = `700 ${Math.round(38*scales.temp)}px Arial`;
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
   ctx.fillText(`${d0.rain}%`, p.main.rainPctX, p.main.rainPctY);
 
-  // Ciudad — una sola vez
-  ctx.font="700 36px Arial"; ctx.fillStyle="#fff"; ctx.textAlign="left";
-  ctx.fillText("VILLA CARLOS PAZ", p.main.cityX, p.main.cityY);
+  // Ciudad (UNA SOLA VEZ)
+  ctx.font = `700 ${Math.round(34*scales.cond)}px Arial`;
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
+  ctx.fillText('VILLA CARLOS PAZ', p.main.cityX, p.main.cityY);
 
   // Ícono grande
   const is0 = p.main.iconSize * scales.icon;
   ctx.drawImage(ic0, p.main.iconX - is0/2, p.main.iconY - is0/2, is0, is0);
 
   // Temp máxima
-  ctx.font=`900 ${Math.round(130*scales.temp)}px Arial`;
-  ctx.fillStyle=colorTemp; ctx.textAlign="left";
+  ctx.font = `900 ${Math.round(130*scales.temp)}px Arial`;
+  ctx.fillStyle = colorTemp; ctx.textAlign = 'left';
   ctx.fillText(`${d0.max}°`, p.main.maxX, p.main.maxY);
 
   // Temp mínima
-  ctx.font=`900 ${Math.round(100*scales.temp)}px Arial`;
-  ctx.fillStyle=colorTemp; ctx.globalAlpha=0.75;
+  ctx.font = `900 ${Math.round(100*scales.temp)}px Arial`;
+  ctx.fillStyle = colorTemp; ctx.globalAlpha = 0.75;
   ctx.fillText(`${d0.min}°`, p.main.minX, p.main.minY);
-  ctx.globalAlpha=1;
+  ctx.globalAlpha = 1;
 
-  // Condición abajo centrada
-  ctx.font=`900 ${Math.round(58*scales.cond)}px Arial`;
-  ctx.fillStyle=colorCond; ctx.textAlign="center";
+  // Condición abajo
+  ctx.font = `900 ${Math.round(58*scales.cond)}px Arial`;
+  ctx.fillStyle = colorCond; ctx.textAlign = 'center';
   ctx.fillText(d0.cond, p.main.condX, p.main.condY);
 
-  // ── PANELES DERECHOS ──
+  // ══ PANELES DERECHOS ═════════════════════════════
+  // Arriba: día 2 | Abajo: día 3
   [[extData[1], p.d1, 2], [extData[2], p.d2, 3]].forEach(([d, pos, off]) => {
-    const ic = imgIconos[d.condFile]||imgIconos["nublado"];
+    const ic = imgIconos[d.condFile] || imgIconos['nublado'];
 
     // Día
-    ctx.font=`900 ${Math.round(30*scales.cond)}px Arial`;
-    ctx.fillStyle="#fff"; ctx.textAlign="left";
+    ctx.font = `900 ${Math.round(30*scales.cond)}px Arial`;
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
     ctx.fillText(dayName(off), pos.dayX, pos.dayY);
 
-    // Ícono (centrado en su zona)
+    // Ícono (centrado en su zona izquierda)
     const is = pos.iconSize * scales.icon;
     ctx.drawImage(ic, pos.iconX - is/2, pos.iconY - is/2, is, is);
 
-    // % lluvia texto derecha
-    ctx.font=`700 ${Math.round(28*scales.temp)}px Arial`;
-    ctx.fillStyle="#fff"; ctx.textAlign="left";
+    // % lluvia (derecha del panel, sin nube)
+    ctx.font = `700 ${Math.round(26*scales.temp)}px Arial`;
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
     ctx.fillText(`${d.rain}%`, pos.rainPctX, pos.rainPctY);
 
     // Condición
-    ctx.font=`900 ${Math.round(26*scales.cond)}px Arial`;
-    ctx.fillStyle=colorCond; ctx.textAlign="left";
+    ctx.font = `900 ${Math.round(26*scales.cond)}px Arial`;
+    ctx.fillStyle = colorCond; ctx.textAlign = 'left';
     ctx.fillText(d.cond, pos.condX, pos.condY);
 
     // Temp
-    ctx.font=`900 ${Math.round(28*scales.temp)}px Arial`;
-    ctx.fillStyle=colorTemp; ctx.textAlign="left";
+    ctx.font = `900 ${Math.round(28*scales.temp)}px Arial`;
+    ctx.fillStyle = colorTemp; ctx.textAlign = 'left';
     ctx.fillText(`${d.max}°/${d.min}°`, pos.tempX, pos.tempY);
   });
 
