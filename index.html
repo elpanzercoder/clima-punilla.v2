@@ -223,31 +223,31 @@ const LOCS = [
 // Panel principal izquierdo: cx=679, y desde 108 hasta 942
 // Paneles derechos: arriba cy=316, abajo cy=709, cx=1312
 const EXT_POS = {
-  // Panel principal izquierdo: x272-950, y109-939, cx=610
+  // Panel principal — posiciones detectadas de marcas
   main: {
-    dayX: 430, dayY: 175,          // JUEVES - grande centrado
-    rainPctX: 820, rainPctY: 175,  // 10% - solo porcentaje sin nube
-    cityX: 310, cityY: 295,        // VILLA CARLOS PAZ
-    iconX: 700, iconY: 530, iconSize: 280,  // ícono clima grande
-    maxX: 330, maxY: 420,          // 15° grande
-    minX: 310, minY: 570,          // 9° más chico
-    condX: 610, condY: 860,        // NUBLADO abajo centrado
+    dayX: 380, dayY: 213,           // JUEVES
+    rainPctX: 980, rainPctY: 213,   // 10%
+    cityX: 290, cityY: 310,         // VILLA CARLOS PAZ
+    iconX: 968, iconY: 530, iconSize: 260, // ícono grande
+    maxX: 290, maxY: 460,           // 15°
+    minX: 290, minY: 590,           // 9°
+    condX: 610, condY: 870,         // NUBLADO
   },
-  // Panel derecho arriba: x1160-1620, y120-510, cx=1390, cy=315
+  // Panel derecho arriba
   d1: {
-    dayX: 1250, dayY: 195,         // VIERNES
-    iconX: 1200, iconY: 330, iconSize: 130, // ícono clima
-    rainPctX: 1540, rainPctY: 220, // 40% a la derecha
-    condX: 1270, condY: 440,       // LLUVIA
-    tempX: 1270, tempY: 485,       // 28°/7°
+    dayX: 1200, dayY: 170,          // VIERNES
+    iconX: 1230, iconY: 280, iconSize: 140,
+    rainPctX: 1570, rainPctY: 300,  // 40%
+    condX: 1260, condY: 410,        // TORMENTA
+    tempX: 1260, tempY: 460,        // 26°/14°
   },
-  // Panel derecho abajo: x1160-1620, y530-900, cx=1390, cy=715
+  // Panel derecho abajo
   d2: {
-    dayX: 1250, dayY: 590,         // SÁBADO
-    iconX: 1200, iconY: 720, iconSize: 130,
-    rainPctX: 1540, rainPctY: 615, // 0%
-    condX: 1270, condY: 830,       // NUBLADO
-    tempX: 1270, tempY: 875,       // 18°/10°
+    dayX: 1200, dayY: 605,          // SÁBADO
+    iconX: 1230, iconY: 715, iconSize: 140,
+    rainPctX: 1570, rainPctY: 745,  // 0%
+    condX: 1260, condY: 840,        // NUBLADO
+    tempX: 1260, tempY: 885,        // 18°/10°
   },
 };
 
@@ -411,34 +411,41 @@ function dibujarExtendido() {
   const d0 = extData[0];
   const ic0 = imgIconos[d0.condFile]||imgIconos["nublado"];
 
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0,0,0,0.9)"; ctx.shadowBlur=6; ctx.shadowOffsetX=1; ctx.shadowOffsetY=1;
+
   // Día grande
-  ctx.font=`900 ${Math.round(70*scales.cond)}px Arial`; ctx.fillStyle="#fff";
-  ctx.textAlign="left"; ctx.textBaseline="middle";
+  ctx.font=`900 ${Math.round(68*scales.cond)}px Arial`;
+  ctx.fillStyle="#fff"; ctx.textAlign="left";
   ctx.fillText(dayName(1), p.main.dayX, p.main.dayY);
 
-  // % lluvia solo texto (sin nube)
-  ctx.font="700 40px Arial"; ctx.fillStyle="#fff"; ctx.textAlign="left";
+  // % lluvia solo texto
+  ctx.font=`700 ${Math.round(38*scales.temp)}px Arial`;
+  ctx.fillStyle="#fff"; ctx.textAlign="left";
   ctx.fillText(`${d0.rain}%`, p.main.rainPctX, p.main.rainPctY);
 
-  // Ciudad
-  ctx.font="700 40px Arial"; ctx.fillStyle="#fff"; ctx.textAlign="left";
+  // Ciudad — una sola vez
+  ctx.font="700 36px Arial"; ctx.fillStyle="#fff"; ctx.textAlign="left";
   ctx.fillText("VILLA CARLOS PAZ", p.main.cityX, p.main.cityY);
 
-  // Ícono grande centrado a la derecha
+  // Ícono grande
   const is0 = p.main.iconSize * scales.icon;
-  ctx.drawImage(ic0, p.main.iconX-is0/2, p.main.iconY-is0/2, is0, is0);
+  ctx.drawImage(ic0, p.main.iconX - is0/2, p.main.iconY - is0/2, is0, is0);
 
-  // Temp máxima grande
-  ctx.font=`900 ${Math.round(130*scales.temp)}px Arial`; ctx.fillStyle=colorTemp; ctx.textAlign="left";
+  // Temp máxima
+  ctx.font=`900 ${Math.round(130*scales.temp)}px Arial`;
+  ctx.fillStyle=colorTemp; ctx.textAlign="left";
   ctx.fillText(`${d0.max}°`, p.main.maxX, p.main.maxY);
 
-  // Temp mínima más chica
-  ctx.font=`900 ${Math.round(100*scales.temp)}px Arial`; ctx.fillStyle=colorTemp; ctx.globalAlpha=0.8;
+  // Temp mínima
+  ctx.font=`900 ${Math.round(100*scales.temp)}px Arial`;
+  ctx.fillStyle=colorTemp; ctx.globalAlpha=0.75;
   ctx.fillText(`${d0.min}°`, p.main.minX, p.main.minY);
   ctx.globalAlpha=1;
 
-  // Condición grande abajo centrada
-  ctx.font=`900 ${Math.round(60*scales.cond)}px Arial`; ctx.fillStyle=colorCond; ctx.textAlign="center";
+  // Condición abajo centrada
+  ctx.font=`900 ${Math.round(58*scales.cond)}px Arial`;
+  ctx.fillStyle=colorCond; ctx.textAlign="center";
   ctx.fillText(d0.cond, p.main.condX, p.main.condY);
 
   // ── PANELES DERECHOS ──
@@ -446,23 +453,27 @@ function dibujarExtendido() {
     const ic = imgIconos[d.condFile]||imgIconos["nublado"];
 
     // Día
-    ctx.font=`900 ${Math.round(32*scales.cond)}px Arial`; ctx.fillStyle="#fff"; ctx.textAlign="left";
+    ctx.font=`900 ${Math.round(30*scales.cond)}px Arial`;
+    ctx.fillStyle="#fff"; ctx.textAlign="left";
     ctx.fillText(dayName(off), pos.dayX, pos.dayY);
 
-    // Ícono clima (izquierda)
+    // Ícono (centrado en su zona)
     const is = pos.iconSize * scales.icon;
-    ctx.drawImage(ic, pos.iconX, pos.iconY-is/2, is, is);
+    ctx.drawImage(ic, pos.iconX - is/2, pos.iconY - is/2, is, is);
 
-    // % lluvia solo texto (derecha)
-    ctx.font=`700 ${Math.round(30*scales.temp)}px Arial`; ctx.fillStyle="#fff"; ctx.textAlign="right";
+    // % lluvia texto derecha
+    ctx.font=`700 ${Math.round(28*scales.temp)}px Arial`;
+    ctx.fillStyle="#fff"; ctx.textAlign="left";
     ctx.fillText(`${d.rain}%`, pos.rainPctX, pos.rainPctY);
 
     // Condición
-    ctx.font=`900 ${Math.round(28*scales.cond)}px Arial`; ctx.fillStyle=colorCond; ctx.textAlign="left";
+    ctx.font=`900 ${Math.round(26*scales.cond)}px Arial`;
+    ctx.fillStyle=colorCond; ctx.textAlign="left";
     ctx.fillText(d.cond, pos.condX, pos.condY);
 
     // Temp
-    ctx.font=`900 ${Math.round(30*scales.temp)}px Arial`; ctx.fillStyle=colorTemp; ctx.textAlign="left";
+    ctx.font=`900 ${Math.round(28*scales.temp)}px Arial`;
+    ctx.fillStyle=colorTemp; ctx.textAlign="left";
     ctx.fillText(`${d.max}°/${d.min}°`, pos.tempX, pos.tempY);
   });
 
